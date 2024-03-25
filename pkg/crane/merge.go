@@ -43,10 +43,14 @@ func MakeMergeSources(sources []string) []MergeSource {
 }
 
 // Merge creates an index from list of paths (tarballs) and
-func Merge(sources []MergeSource, opt ...Option) (*v1.ImageIndex, error) {
+func Merge(sources []MergeSource, targetMediaType types.MediaType, opt ...Option) (*v1.ImageIndex, error) {
 	o := makeOptions(opt...)
 
-	idx, err := appendIndex(mutate.IndexMediaType(empty.Index, types.DockerManifestList), sources, o)
+	if !targetMediaType.IsIndex() {
+		return nil, fmt.Errorf("target media type must be an index, got: %v", targetMediaType)
+	}
+
+	idx, err := appendIndex(mutate.IndexMediaType(empty.Index, targetMediaType), sources, o)
 	if err != nil {
 		return nil, fmt.Errorf("unable to create merged index, err: %v", err)
 	}
